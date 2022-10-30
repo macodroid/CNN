@@ -38,8 +38,8 @@ if __name__ == "__main__":
 
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
-
-    # scheduler = StepLR(optimizer, step_size=1, gamma=0.8)
+    if args.scheduler_gamma != 0.0:
+        scheduler = StepLR(optimizer, step_size=1, gamma=args.scheduler_gamma)
 
     trainer = Dojo(
         model=model,
@@ -63,7 +63,8 @@ if __name__ == "__main__":
         epoch_train_losses.append(train_loss)
         epoch_val_losses.append(val_loss)
         epoch_val_accs.append(val_acc)
-        # scheduler.step()
+        if args.scheduler_gamma != 0.0:
+            scheduler.step()
     print(f"Test Accuracy of the model: {trainer.test() * 100:.2f}")
     # TODO running some experiments need to change name of the snapshot of model
     # torch.save(model, 'baseline_cifar10.pt')

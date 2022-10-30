@@ -38,5 +38,12 @@ def parse_args():
         default=64,
         help="Batch size",
     )
+    parser.add_argument(
+        "-sg",
+        "--scheduler_gamma",
+        type=float,
+        default=0.0,
+        help="DISCLAIMER if this argument is more then more then 0.0, scheduler is activated otherwise it is not used.",
+    )
 
     return parser.parse_args()
