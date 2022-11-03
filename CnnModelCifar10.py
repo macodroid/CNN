@@ -1,13 +1,13 @@
 import torch
 from torch import nn
 
-from EnumActivationFunction import ActivationFunction
+from ActivationFunctionFactory import ActivationFunctionFactory
 
 
 class CnnModelCifar10(nn.Module):
     def __init__(
         self,
-        activation_function=ActivationFunction.ReLU,
+        activation_function,
         input_shape=(64, 3, 32, 32),
         num_classes=10,
     ):
@@ -16,13 +16,13 @@ class CnnModelCifar10(nn.Module):
         self.features = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1)),
             nn.MaxPool2d(2),
-            activation_function.value,
+            activation_function,
             nn.Conv2d(32, 64, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1)),
             nn.MaxPool2d(2),
-            activation_function.value,
+            activation_function,
             nn.Conv2d(64, 128, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1)),
             nn.MaxPool2d(2),
-            activation_function.value,
+            activation_function,
         )
 
         self.classifier = nn.Sequential(

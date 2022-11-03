@@ -2,4 +2,4 @@ model_snapshot_and_images
 /.ipynb_checkpoints/
 /.idea/
 /data/
-/test/
+/tests/
