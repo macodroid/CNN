@@ -98,6 +98,11 @@ if __name__ == "__main__":
         )
         torch.save(model, f"{main_test_dir}/{config['name_of_test']}.pt")
         utils.create_plot(
-            epoch_train_losses, epoch_val_losses, main_test_dir, config["name_of_test"]
+            epoch_train_losses,
+            epoch_val_losses,
+            epoch_val_accs,
+            main_test_dir,
+            config["name_of_test"],
         )
+
     print("Done!")

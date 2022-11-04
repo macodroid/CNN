@@ -18,3 +18,5 @@ class ActivationFunctionFactory:
             return nn.LeakyReLU()
         elif self.activation_function["name"] == "gelu":
             return nn.GELU()
+        elif self.activation_function["name"] == "silu":
+            return nn.SiLU()

@@ -10,7 +10,9 @@ class OptimizerFactory:
     def get_optimizer(self):
         if self.optimizer["name"] == "adam":
             return torch.optim.Adam(
-                self.model.parameters(), lr=self.optimizer["learning_rate"]
+                self.model.parameters(),
+                lr=self.optimizer["learning_rate"],
+                betas=(self.optimizer["beta1"], self.optimizer["beta2"]),
             )
         elif self.optimizer["name"] == "sgd":
             return torch.optim.SGD(
@@ -19,7 +21,7 @@ class OptimizerFactory:
                 nesterov=self.optimizer["nesterov"],
                 momentum=self.optimizer["momentum"],
             )
-        elif self.optimizer["rmsprop"] == "rmsprop":
+        elif self.optimizer["name"] == "rmsprop":
             return torch.optim.RMSprop(
                 self.model.parameters(),
                 lr=self.optimizer["learning_rate"],

@@ -60,14 +60,30 @@ def parse_args():
     return parser.parse_args()
 
 
-def create_plot(epoch_train_losses, epoch_val_losses, directory, test_name):
-    plt.plot(epoch_train_losses, c="r")
-    plt.plot(epoch_val_losses, c="b")
-    plt.legend(["Train_loss", "Val_loss"])
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Train vs. Validation loss")
-    plt.savefig(f"{directory}/{test_name}.png")
+def create_plot(
+    epoch_train_losses,
+    epoch_val_losses,
+    epoch_val_acc,
+    directory,
+    test_name,
+    save_plot=True,
+    display_plot=False,
+):
+    figure, axis = plt.subplots(2, 1)
+    axis[0].plot(epoch_train_losses, c="r")
+    axis[0].plot(epoch_val_losses, c="b")
+    axis[0].legend(["Train_loss", "Val_loss"])
+    axis[0].set_title("Train vs. Validation loss")
+    axis[0].set(xlabel="Epoch", ylabel="Loss")
+    axis[1].plot(epoch_val_acc)
+    axis[1].legend(["Val_acc"])
+    axis[1].set_title("Validation accuracy")
+    axis[1].set(xlabel="Epoch", ylabel="Accuracy")
+    plt.tight_layout()
+    if save_plot:
+        plt.savefig(f"{directory}/{test_name}.png")
+    if display_plot:
+        plt.show()
 
 
 def model_configuration(path_to_config_file: str) -> dict:
