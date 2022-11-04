@@ -2,6 +2,7 @@ import argparse
 
 from matplotlib import pyplot as plt
 import toml
+import torch
 
 
 def parse_args():
@@ -69,6 +70,15 @@ def create_plot(epoch_train_losses, epoch_val_losses, directory, test_name):
     plt.savefig(f"{directory}/{test_name}.png")
 
 
-def model_configuration():
-    config = toml.load("config.toml")
+def model_configuration(path_to_config_file: str) -> dict:
+    config = toml.load(path_to_config_file)
     return config
+
+
+def get_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    elif torch.has_mps:
+        return "mps"
+    else:
+        return "cpu"

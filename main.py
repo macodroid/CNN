@@ -11,12 +11,14 @@ from CnnModelCifar10 import CnnModelCifar10
 from ActivationFunctionFactory import ActivationFunctionFactory
 from dataset_utils import DataProvider
 from dojo import Dojo
+import shutil
 
 if __name__ == "__main__":
     args = utils.parse_args()
     config = utils.model_configuration(args.config)
     os.mkdir(f"tests/{config['name_of_test']}")
     main_test_dir = f"tests/{config['name_of_test']}"
+    shutil.copyfile(args.config, f"{main_test_dir}/{args.config}")
     transform = transforms.ToTensor()
     data_provide = DataProvider(batch_size=config["batch_size"], transform=transform)
     train_dl, val_dl, test_dl = data_provide.get_data()
@@ -26,25 +28,29 @@ if __name__ == "__main__":
         print(f"Shape of y: {y.shape} {y.dtype}")
         inp_shape = X.shape
         break
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = utils.get_device()
+    print(device)
     print(f"Using {device} device")
+    # get activation function
     activation_function_provider = ActivationFunctionFactory(
         activation_function=config["activation_function"],
     )
     activation_fn = activation_function_provider.get_activation_function()
+    # define model
     model = CnnModelCifar10(
         input_shape=inp_shape,
         activation_function=activation_fn,
     )
+
     model.to(device)
 
     loss_fn = nn.CrossEntropyLoss()
-    optimizer_provider = OptimizerFactory()
-    optimizer = optimizer_provider.get_optimizer(config
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
-    if args.scheduler_gamma != 0.0:
-        scheduler = StepLR(optimizer, step_size=1, gamma=args.scheduler_gamma)
+    # Get optimization function
+    optimizer_provider = OptimizerFactory(config["optimizer"], model=model)
+    optimizer = optimizer_provider.get_optimizer()
+
+    # if args.scheduler_gamma != 0.0:
+    #     scheduler = StepLR(optimizer, step_size=1, gamma=args.scheduler_gamma)
 
     trainer = Dojo(
         model=model,
@@ -59,10 +65,8 @@ if __name__ == "__main__":
     epoch_train_losses = []
     epoch_val_losses = []
     epoch_val_accs = []
-    with open(f"{main_test_dir}/{args.name_of_test}.txt", "w") as file_write:
-        for a in arguments:
-            file_write.write(f"{a}: {arguments[a]}\n")
-        for e in range(args.epochs):
+    with open(f"{main_test_dir}/{config['name_of_test']}.txt", "w") as file_write:
+        for e in range(config["epochs"]):
             file_write.write(f"\nEpoch {e + 1}\n-------------------------------")
             print(f"Epoch {e + 1}\n-------------------------------")
 
@@ -81,8 +85,8 @@ if __name__ == "__main__":
             epoch_val_losses.append(val_loss)
             epoch_val_accs.append(val_acc)
 
-            if args.scheduler_gamma != 0.0:
-                scheduler.step()
+            # if args.scheduler_gamma != 0.0:
+            #     scheduler.step()
 
         acc_test = trainer.test()
 
@@ -92,8 +96,8 @@ if __name__ == "__main__":
         print(
             f"\n-------------------------------Test Accuracy of the model: {acc_test * 100:.2f}"
         )
-        torch.save(model, f"{main_test_dir}/{args.name_of_test}.pt")
+        torch.save(model, f"{main_test_dir}/{config['name_of_test']}.pt")
         utils.create_plot(
-            epoch_train_losses, epoch_val_losses, main_test_dir, args.name_of_test
+            epoch_train_losses, epoch_val_losses, main_test_dir, config["name_of_test"]
         )
     print("Done!")
