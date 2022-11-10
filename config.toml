@@ -1,7 +1,13 @@
 # This is for creating directory and naming files.
-name_of_test='test1'
+name_of_test='dropout_conv_dnes_e10'
 batch_size=64
-epochs=10
+epochs=20
+
+[convolution_layer]
+dropout=0.2
+
+[dense_layer]
+dropout=0.5
 
 [activation_function]
 name='relu'
@@ -23,5 +29,7 @@ beta2=0.999
 #learning_rate=0.001
 #momentum=0.9
 #alpha=0.999
+
+
 
 

@@ -3,6 +3,7 @@ import argparse
 from matplotlib import pyplot as plt
 import toml
 import torch
+import yaml
 
 
 def parse_args():
@@ -86,9 +87,13 @@ def create_plot(
         plt.show()
 
 
+# def model_configuration(path_to_config_file: str) -> dict:
+#     config = toml.load(path_to_config_file)
+#     return config
+
+
 def model_configuration(path_to_config_file: str) -> dict:
-    config = toml.load(path_to_config_file)
-    return config
+    return yaml.load(open(path_to_config_file, "r"), Loader=yaml.FullLoader)
 
 
 def get_device() -> str:

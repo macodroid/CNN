@@ -2,13 +2,13 @@ import os
 
 import torch
 from torch import nn
-from torch.optim.lr_scheduler import StepLR
 from torchvision import transforms
-from OptimizerFactory import OptimizerFactory
+
+import activation_function_factory
+import optimizer_factory
 
 import utils
 from CnnModelCifar10 import CnnModelCifar10
-from ActivationFunctionFactory import ActivationFunctionFactory
 from dataset_utils import DataProvider
 from dojo import Dojo
 import shutil
@@ -31,23 +31,31 @@ if __name__ == "__main__":
     device = utils.get_device()
     print(device)
     print(f"Using {device} device")
+
     # get activation function
-    activation_function_provider = ActivationFunctionFactory(
-        activation_function=config["activation_function"],
+    activation_function = activation_function_factory.get_activation_function(
+        config["activation_function"]
     )
-    activation_fn = activation_function_provider.get_activation_function()
+
+    # Layers config
+    convolution_layer_config = (
+        config["convolution_layer"] if "convolution_layer" in config else None
+    )
+    dense_layer_config = config["dense_layer"] if "dense_layer" in config else None
+
     # define model
     model = CnnModelCifar10(
         input_shape=inp_shape,
-        activation_function=activation_fn,
+        activation_function=activation_function,
+        convolution_layer_config=convolution_layer_config,
+        dense_layer_config=dense_layer_config,
     )
 
     model.to(device)
 
     loss_fn = nn.CrossEntropyLoss()
     # Get optimization function
-    optimizer_provider = OptimizerFactory(config["optimizer"], model=model)
-    optimizer = optimizer_provider.get_optimizer()
+    optimizer = optimizer_factory.get_optimizer(config["optimizer"], model=model)
 
     # if args.scheduler_gamma != 0.0:
     #     scheduler = StepLR(optimizer, step_size=1, gamma=args.scheduler_gamma)
