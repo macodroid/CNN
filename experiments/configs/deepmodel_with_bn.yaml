@@ -1,0 +1,15 @@
+version: 1
+
+defaults:
+  experiment_name: "deepmodel_with_bn2"
+  epochs: 40
+  batch_size: 64
+
+optimizer:
+  name: "Adam"
+  learning_rate: 0.001
+  beta1: 0.9
+  beta2: 0.999
+
+architecture:
+  class: "CustomCnnModelCifar10"

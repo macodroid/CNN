@@ -1,0 +1,147 @@
+version: 1
+
+defaults:
+  experiment_name: "bestmodel"
+  epochs: 40
+  batch_size: 32
+
+optimizer:
+  name: "Adam"
+  learning_rate: 0.001
+  beta1: 0.9
+  beta2: 0.999
+
+architecture:
+  convolution_layers:
+    # first block
+    conv_layer_1:
+      type: "Conv2d"
+      in_channels: 3
+      out_channels: 64
+      kernel_size: (3,3)
+      stride: (1,1)
+      padding: (1,1)
+    pooling_1:
+      type: "MaxPool2d"
+      kernel_size: (2,2)
+      stride: (1,1)
+    activation_function_1:
+      type: "ReLU"
+    conv_layer_2:
+      type: "Conv2d"
+      in_channels: 64
+      out_channels: 256
+      kernel_size: (3,3)
+      stride: (1,1)
+      padding: (1,1)
+    #    batch_norm2d_3:
+    #      type: "BatchNorm2d"
+    #      num_features: 128
+    pooling_2:
+      type: "MaxPool2d"
+      kernel_size: (2,2)
+      stride: (1,1)
+    activation_function_2:
+      type: "ReLU"
+    dropout2d_2:
+      type: "Dropout2d"
+      p: 0.2
+    # second block
+    conv_layer_3:
+      type: "Conv2d"
+      in_channels: 256
+      out_channels: 512
+      kernel_size: (3,3)
+      stride: (1,1)
+      padding: (1,1)
+    #    batch_norm2d_3:
+    #      type: "BatchNorm2d"
+    #      num_features: 128
+    pooling_3:
+      type: "MaxPool2d"
+      kernel_size: (2,2)
+      stride: (1,1)
+    activation_function_3:
+      type: "ReLU"
+    conv_layer_4:
+      type: "Conv2d"
+      in_channels: 512
+      out_channels: 512
+      kernel_size: (3,3)
+      stride: (1,1)
+      padding: (1,1)
+    #    batch_norm2d_3:
+    #      type: "BatchNorm2d"
+    #      num_features: 128
+    pooling_4:
+      type: "MaxPool2d"
+      kernel_size: (2,2)
+      stride: (1,1)
+    activation_function_4:
+      type: "ReLU"
+    dropout2d_4:
+      type: "Dropout2d"
+      p: 0.2
+    # third block
+    conv_layer_5:
+      type: "Conv2d"
+      in_channels: 512
+      out_channels: 1024
+      kernel_size: (3,3)
+      stride: (1,1)
+      padding: (1,1)
+    pooling_5:
+      type: "MaxPool2d"
+      kernel_size: (2,2)
+      stride: (1,1)
+    conv_layer_6:
+      type: "Conv2d"
+      in_channels: 1024
+      out_channels: 1024
+      kernel_size: (3,3)
+      stride: (1,1)
+      padding: (1,1)
+    #    batch_norm2d_3:
+    #      type: "BatchNorm2d"
+    #      num_features: 128
+    pooling_6:
+      type: "MaxPool2d"
+      kernel_size: (2,2)
+      stride: (1,1)
+    activation_function_6:
+      type: "ReLU"
+    dropout2d_7:
+      type: "Dropout2d"
+      p: 0.2
+  fully_connected_layers:
+    fc_layer_1:
+      type: "Linear"
+      in_features: 16384
+      out_features: 4096
+    activation_function_1:
+      type: "ReLU"
+    dropout_1:
+      type: "Dropout"
+      p: 0.5
+    fc_layer_2:
+      type: "Linear"
+      in_features: 4096
+      out_features: 2048
+    activation_function_2:
+      type: "ReLU"
+    dropout_2:
+      type: "Dropout"
+      p: 0.5
+    fc_layer_3:
+      type: "Linear"
+      in_features: 2048
+      out_features: 512
+    activation_function_3:
+      type: "ReLU"
+    dropout_3:
+      type: "Dropout"
+      p: 0.5
+    fc_layer_4:
+      type: "Linear"
+      in_features: 512
+      out_features: 10

@@ -1,4 +1,6 @@
 import argparse
+import os
+import shutil
 
 from matplotlib import pyplot as plt
 import toml
@@ -93,7 +95,9 @@ def create_plot(
 
 
 def model_configuration(path_to_config_file: str) -> dict:
-    return yaml.load(open(path_to_config_file, "r"), Loader=yaml.FullLoader)
+    return yaml.load(
+        open(f"experiments/configs/{path_to_config_file}", "r"), Loader=yaml.FullLoader
+    )
 
 
 def get_device() -> str:
@@ -103,3 +107,15 @@ def get_device() -> str:
         return "mps"
     else:
         return "cpu"
+
+
+def create_experiment_dir(experiment_name: dict, config_name: str) -> str:
+    experiments_results_dir = (
+        f"{os.path.dirname(os.path.realpath(__file__))}/experiments/results"
+    )
+    os.mkdir(f"{experiments_results_dir}/{experiment_name}")
+    shutil.copyfile(
+        f"experiments/configs/{config_name}",
+        f"{experiments_results_dir}/{experiment_name}/{config_name}",
+    )
+    return f"{experiments_results_dir}/{experiment_name}"

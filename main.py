@@ -1,26 +1,36 @@
-import os
-
-import torch
-from torch import nn
-from torchvision import transforms
-
-import activation_function_factory
 import optimizer_factory
-
+import torch
 import utils
 from CnnModelCifar10 import CnnModelCifar10
+from CustomCnnModelCifar10 import CustomCnnModelCifar10
+from ResidualConnectionsCnnModelCifar10 import ResidualConnectionsCnnModelCifar10
 from dataset_utils import DataProvider
 from dojo import Dojo
-import shutil
+from torch import nn
+from torchvision import transforms
 
 if __name__ == "__main__":
     args = utils.parse_args()
     config = utils.model_configuration(args.config)
-    os.mkdir(f"tests/{config['name_of_test']}")
-    main_test_dir = f"tests/{config['name_of_test']}"
-    shutil.copyfile(args.config, f"{main_test_dir}/{args.config}")
-    transform = transforms.ToTensor()
-    data_provide = DataProvider(batch_size=config["batch_size"], transform=transform)
+    experiment_directory = utils.create_experiment_dir(
+        config["defaults"]["experiment_name"], args.config
+    )
+
+    if "augmentation" in config["defaults"] and config["defaults"]["augmentation"]:
+        transform = transforms.Compose(
+            [
+                transforms.RandomVerticalFlip(),
+                transforms.RandomHorizontalFlip(),
+                transforms.GaussianBlur(kernel_size=3),
+                transforms.ToTensor(),
+            ]
+        )
+    else:
+        transform = transforms.ToTensor()
+
+    data_provide = DataProvider(
+        batch_size=config["defaults"]["batch_size"], transform=transform
+    )
     train_dl, val_dl, test_dl = data_provide.get_data()
 
     for X, y in val_dl:
@@ -32,25 +42,27 @@ if __name__ == "__main__":
     print(device)
     print(f"Using {device} device")
 
-    # get activation function
-    activation_function = activation_function_factory.get_activation_function(
-        config["activation_function"]
-    )
-
-    # Layers config
-    convolution_layer_config = (
-        config["convolution_layer"] if "convolution_layer" in config else None
-    )
-    dense_layer_config = config["dense_layer"] if "dense_layer" in config else None
-
     # define model
-    model = CnnModelCifar10(
-        input_shape=inp_shape,
-        activation_function=activation_function,
-        convolution_layer_config=convolution_layer_config,
-        dense_layer_config=dense_layer_config,
-    )
-
+    if (
+        "class" in config["architecture"]
+        and config["architecture"]["class"] == "CustomCnnModelCifar10"
+    ):
+        model = CustomCnnModelCifar10(
+            input_shape=inp_shape,
+        )
+    elif (
+        "class" in config["architecture"]
+        and config["architecture"]["class"] == "ResidualConnectionsCnnModelCifar10"
+    ):
+        model = ResidualConnectionsCnnModelCifar10(
+            input_shape=inp_shape,
+        )
+    else:
+        model = CnnModelCifar10(
+            convolution_layers=config["architecture"]["convolution_layers"],
+            fully_connected_layers=config["architecture"]["fully_connected_layers"],
+            input_shape=inp_shape,
+        )
     model.to(device)
 
     loss_fn = nn.CrossEntropyLoss()
@@ -73,8 +85,10 @@ if __name__ == "__main__":
     epoch_train_losses = []
     epoch_val_losses = []
     epoch_val_accs = []
-    with open(f"{main_test_dir}/{config['name_of_test']}.txt", "w") as file_write:
-        for e in range(config["epochs"]):
+    with open(
+        f"{experiment_directory}/{config['defaults']['experiment_name']}.txt", "w"
+    ) as file_write:
+        for e in range(config["defaults"]["epochs"]):
             file_write.write(f"\nEpoch {e + 1}\n-------------------------------")
             print(f"Epoch {e + 1}\n-------------------------------")
 
@@ -104,13 +118,15 @@ if __name__ == "__main__":
         print(
             f"\n-------------------------------Test Accuracy of the model: {acc_test * 100:.2f}"
         )
-        torch.save(model, f"{main_test_dir}/{config['name_of_test']}.pt")
+        torch.save(
+            model, f"{experiment_directory}/{config['defaults']['experiment_name']}.pt"
+        )
         utils.create_plot(
             epoch_train_losses,
             epoch_val_losses,
             epoch_val_accs,
-            main_test_dir,
-            config["name_of_test"],
+            experiment_directory,
+            config["defaults"]["experiment_name"],
         )
 
     print("Done!")

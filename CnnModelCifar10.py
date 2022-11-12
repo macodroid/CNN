@@ -5,23 +5,21 @@ from torch import nn
 class CnnModelCifar10(nn.Module):
     def __init__(
         self,
-        activation_function,
-        convolution_layer_config,
-        dense_layer_config,
+        convolution_layers,
+        fully_connected_layers,
         input_shape=(64, 3, 32, 32),
         num_classes=10,
     ):
         super(CnnModelCifar10, self).__init__()
-        # Set all properties from config
-        self.activation_function = activation_function
-        self.convolution_layer_config = convolution_layer_config
-        self.dense_layer_config = dense_layer_config
+        self.convolution_architecture = convolution_layers
+        self.fully_connected_architecture = fully_connected_layers
+
         # Build layers
         convolution_layers = self.build_convolution_layers()
-        dense_layer = self.build_dense_layer()
+        fc_layer = self.build_fully_connected_layer()
         # Assign layers to model
         self.features = nn.Sequential(*convolution_layers)
-        self.classifier = nn.Sequential(*dense_layer)
+        self.classifier = nn.Sequential(*fc_layer)
 
         # Initialize weights
         def init_weights(m):
@@ -33,55 +31,77 @@ class CnnModelCifar10(nn.Module):
         self.features.apply(init_weights)
 
     def build_convolution_layers(self):
-        convolution_layers = []
-        convolution_layers.append(
-            nn.Conv2d(3, 32, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1))
-        )
-        convolution_layers.append(nn.MaxPool2d(2))
-        convolution_layers.append(self.activation_function)
-        if (
-            self.convolution_layer_config is not None
-            and "dropout" in self.convolution_layer_config
-        ):
-            convolution_layers.append(
-                nn.Dropout2d(self.convolution_layer_config["dropout"])
-            )
+        layers = []
+        for layer in self.convolution_architecture:
+            if self.convolution_architecture[layer]["type"] == "Conv2d":
+                component = getattr(nn, self.convolution_architecture[layer]["type"])(
+                    self.convolution_architecture[layer]["in_channels"],
+                    self.convolution_architecture[layer]["out_channels"],
+                    eval(self.convolution_architecture[layer]["kernel_size"]),
+                    eval(self.convolution_architecture[layer]["stride"]),
+                    eval(self.convolution_architecture[layer]["padding"]),
+                )
+            elif (
+                self.convolution_architecture[layer]["type"] == "ReLU"
+                or self.convolution_architecture[layer]["type"] == "Sigmoid"
+                or self.convolution_architecture[layer]["type"] == "Tanh"
+            ):
+                component = getattr(nn, self.convolution_architecture[layer]["type"])()
+            elif self.convolution_architecture[layer]["type"] == "LeakyReLu":
+                component = getattr(nn, self.convolution_architecture[layer]["type"])(
+                    layer["negative_slope"]
+                )
+            elif self.convolution_architecture[layer]["type"] == "MaxPool2d":
+                component = getattr(nn, self.convolution_architecture[layer]["type"])(
+                    eval(self.convolution_architecture[layer]["kernel_size"]),
+                )
+            elif self.convolution_architecture[layer]["type"] == "Dropout2d":
+                component = getattr(nn, self.convolution_architecture[layer]["type"])(
+                    self.convolution_architecture[layer]["p"]
+                )
+            elif self.convolution_architecture[layer]["type"] == "BatchNorm2d":
+                component = getattr(nn, self.convolution_architecture[layer]["type"])(
+                    self.convolution_architecture[layer]["num_features"]
+                )
+            else:
+                continue
+            layers.append(component)
+        return layers
 
-        convolution_layers.append(
-            nn.Conv2d(32, 64, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1))
-        )
-        convolution_layers.append(nn.MaxPool2d(2))
-        convolution_layers.append(self.activation_function)
-        if (
-            self.convolution_layer_config is not None
-            and "dropout" in self.convolution_layer_config
-        ):
-            convolution_layers.append(
-                nn.Dropout2d(self.convolution_layer_config["dropout"])
-            )
-
-        convolution_layers.append(
-            nn.Conv2d(64, 128, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1))
-        )
-        convolution_layers.append(nn.MaxPool2d(2))
-        convolution_layers.append(self.activation_function)
-        if (
-            self.convolution_layer_config is not None
-            and "dropout" in self.convolution_layer_config
-        ):
-            convolution_layers.append(
-                nn.Dropout2d(self.convolution_layer_config["dropout"])
-            )
-        return convolution_layers
-
-    def build_dense_layer(self):
-        fully_connected_layers = []
-        if self.dense_layer_config is not None and "dropout" in self.dense_layer_config:
-            fully_connected_layers.append(
-                nn.Dropout(self.dense_layer_config["dropout"])
-            )
-        fully_connected_layers.append(nn.Linear(2048, 10))
-        return fully_connected_layers
+    def build_fully_connected_layer(self):
+        layers = []
+        for layer in self.fully_connected_architecture:
+            if self.fully_connected_architecture[layer]["type"] == "Linear":
+                component = getattr(
+                    nn, self.fully_connected_architecture[layer]["type"]
+                )(
+                    self.fully_connected_architecture[layer]["in_features"],
+                    self.fully_connected_architecture[layer]["out_features"],
+                )
+            elif (
+                self.fully_connected_architecture[layer]["type"] == "ReLU"
+                or self.fully_connected_architecture[layer]["type"] == "Sigmoid"
+                or self.fully_connected_architecture[layer]["type"] == "Tanh"
+            ):
+                component = getattr(
+                    nn, self.fully_connected_architecture[layer]["type"]
+                )()
+            elif self.fully_connected_architecture[layer]["type"] == "LeakyReLu":
+                component = getattr(
+                    nn, self.fully_connected_architecture[layer]["type"]
+                )(self.convolution_architecture[layer]["negative_slope"])
+            elif self.fully_connected_architecture[layer]["type"] == "Dropout":
+                component = getattr(
+                    nn, self.fully_connected_architecture[layer]["type"]
+                )(self.fully_connected_architecture[layer]["p"])
+            elif self.fully_connected_architecture[layer]["type"] == "BatchNorm1d":
+                component = getattr(
+                    nn, self.fully_connected_architecture[layer]["type"]
+                )(self.fully_connected_architecture[layer]["num_features"])
+            else:
+                continue
+            layers.append(component)
+        return layers
 
     def forward(self, x):
         x = self.features(x)

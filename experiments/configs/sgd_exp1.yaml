@@ -1,0 +1,58 @@
+version: 1
+
+defaults:
+  experiment_name: "sgd_exp1"
+  epochs: 10
+  batch_size: 64
+
+optimizer:
+  name: "SGD"
+  learning_rate: 0.001
+  momentum: 0.9
+  nesterov: true
+
+architecture:
+  convolution_layers:
+    conv_layer_1:
+      type: "Conv2d"
+      in_channels: 3
+      out_channels: 32
+      kernel_size: (3,3)
+      stride: (1,1)
+      padding: (1,1)
+    pooling_1:
+      type: "MaxPool2d"
+      kernel_size: (2,2)
+      stride: (1,1)
+    activation_function_1:
+      type: "ReLU"
+    conv_layer_2:
+      type: "Conv2d"
+      in_channels: 32
+      out_channels: 64
+      kernel_size: (3,3)
+      stride: (1,1)
+      padding: (1,1)
+    pooling_2:
+      type: "MaxPool2d"
+      kernel_size: (2,2)
+      stride: (1,1)
+    activation_function_2:
+      type: "ReLU"
+    conv_layer_3:
+      type: "Conv2d"
+      in_channels: 64
+      out_channels: 128
+      kernel_size: (3,3)
+      stride: (1,1)
+      padding: (1,1)
+    pooling_3:
+      type: "MaxPool2d"
+      kernel_size: (2,2)
+    activation_function_3:
+      type: "ReLU"
+  fully_connected_layers:
+    fc_layer_1:
+      type: "Linear"
+      in_features: 2048
+      out_features: 10
